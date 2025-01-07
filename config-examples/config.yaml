@@ -1,0 +1,32 @@
+# Example configuration file for a single stoichiometry.
+
+# Working directory for this stoichiometry.
+run_dir: Zn4-Cu
+
+# Stoichiometry of nanocluster to search for.
+nanocluster_stoichiometry: Zn4
+
+surface:
+  # Element to create the surface from.
+  element: Cu
+
+  # Lattice parameter for the fcc(111) surface.
+  a: 3.61
+
+  # Number of atoms (a, b, c) in the surface for low-level calculations.
+  low_level_size: [7, 7, 2]
+
+  # Number of atoms (a, b, c) in the surface for high-level calculations.
+  high_level_size: [7, 7, 4]
+
+  # Total vacuum size between top layer of surface atoms and bottom layer in
+  # next periodic copy (in Å).
+  vacuum: 18.0
+
+agox:
+  # Number of AGOX iterations to run.
+  num_iterations: 1000
+
+energy_filter:
+  # Energy filtering threshold relative to the global minimum energy (in eV).
+  threshold: 1.0

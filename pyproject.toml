@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+
+[project]
+name = "oxide-nanocluster-workflow"
+version = "1.0"
+authors = [{name = "Luuk Kempen"}]
+readme = "README.md"
+requires-python = ">= 3.9"
+license = {text = "GPLv3"}
+dependencies = [
+    "agox@git+https://gitlab.com/agox/agox.git@lcb-penalty-fix",
+    "ase",
+    "numpy",
+    "pydantic",
+    "pyyaml",
+    "scipy"
+]

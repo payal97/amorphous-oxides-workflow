@@ -1,0 +1,12 @@
+# Example configuration file for training a local GPR model across multiple
+# stoichiometries.
+
+# List of run paths to take structures from for training the local GPR model.
+input_run_dirs:
+  - Zn4-Cu
+
+# Maximum number of structures to train on (to limit memory usage).
+max_train_structures: 15000
+
+# Maximum number of structures to evaluate models (to limit runtime).
+max_evaluate_structures: 1000
