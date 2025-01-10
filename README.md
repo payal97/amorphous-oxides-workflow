@@ -87,7 +87,22 @@ configuration file,
 
 If you use this workflow in a publication, please cite our work:
 
-<!-- add citation -->
+Kempen, L.H.E., Andersen, M. Inverse catalysts: tuning the composition and structure of oxide clusters through the metal support. _npj Computational Materials_ **11**, 8 (2025). https://doi.org/10.1038/s41524-024-01507-z
+
+```
+@article{kempen2025,
+    title={Inverse catalysts: tuning the composition and structure of oxide clusters through the metal support},
+    volume={11},
+    ISSN={2057-3960},
+    url={http://dx.doi.org/10.1038/s41524-024-01507-z},
+    DOI={10.1038/s41524-024-01507-z},
+    number={1},
+    journal={npj Computational Materials},
+    author={Kempen, Luuk H. E. and Andersen, Mie},
+    year={2025},
+    pages={8}
+}
+```
 
 ## License
 
