@@ -2,7 +2,7 @@ from collections import defaultdict
 
 import numpy as np
 from agox.candidates import StandardCandidate
-from agox.models.descriptors import VoronoiSite
+from agox.models.descriptors import Voronoi, VoronoiSite
 from ase.atoms import Atoms
 
 
@@ -47,14 +47,17 @@ def graph_filter(structures: list[Atoms],
         Most stable structure from each fingerprint group, sorted by energy.
     """
 
-    voronoi_site = _get_voronoi_site(n_atoms=len(structures[0]),
-                                     template=template)
+    top_layer_indices = [atom.index for atom in template if atom.tag == 1]
+    graph_indices = top_layer_indices + list(range(len(template), len(structures[0])))
+    voronoi = Voronoi(template=template,
+                      indices=graph_indices,
+                      environment=None)
 
     # identify structure groups
     structures_by_feature: dict[str, list[Atoms]] = defaultdict(list)
     for structure in structures:
         candidate = StandardCandidate.from_atoms(template, structure)
-        feature = voronoi_site.create_features(candidate)
+        feature = voronoi.create_features(candidate)
         structures_by_feature[feature].append(structure)
 
     # get most stable structure from each group
