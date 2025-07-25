@@ -20,17 +20,31 @@ def agox_target_calc(template: Atoms,
         AGOX target potential.
     """
 
-    from agox.helpers.gpaw_subprocess import SubprocessGPAW
+    from ase.calculators.vasp import Vasp
 
-    return SubprocessGPAW(
-        log_directory=f'gpaw_logs_{index:03d}',
-        mode='lcao',
-        basis='dzp',
-        convergence={'energy': 0.005,
-                     'density': 0.001,
-                     'eigenstates': 0.001,
-                     'bands': 'occupied'},
-        txt='gpaw.txt'
+    return Vasp(
+        command='mpirun vasp_gam >> out',
+        istart=0,
+        icharg=2,
+        xc="PBE",
+        nsw=0,
+        ibrion=-1,
+        encut=400,
+        prec="Normal",
+        #algo="Fast",
+        addgrid=True,
+        isym=0,
+        ismear=1,
+        sigma=0.2,
+        ediff=1E-4,
+        ediffg=-0.05,
+        npar=8,
+        lplane=True,
+        lscalu=False,
+        nsim=32,
+        lreal="Auto",
+        kpts=(1,1,1),
+        gamma=True,
     )
 
 
@@ -49,23 +63,30 @@ def dft_relax_calc(structure: Atoms) -> Calculator:
         Calculator object.
     """
 
-    from gpaw.calculator import GPAW
-    from gpaw.utilities import h2gpts
+    from ase.calculators.vasp import Vasp
 
-    return GPAW(
-        mode={'name': 'pw',
-              'ecut': 400},
-        xc='PBE',
-        basis='dzp',
-        convergence={'energy': 0.005,
-                     'density': 1e-5,
-                     'eigenstates': 4e-7,
-                     'bands': 'occupied'
-                     },
-        occupations={'name': 'fermi-dirac',
-                     'width': 0.1},
-        gpts=h2gpts(0.20, structure.get_cell(), idiv=8),
-        nbands='110%'
+    return Vasp(
+        command='mpirun vasp_gam >> out',
+        istart=1,
+        icharg=1,
+        xc="PBE",
+        nsw=200,
+        isif=2,
+        ibrion=2,
+        encut=400,
+        prec="Accurate",
+        #algo="Fast",
+        ismear=1,
+        sigma=0.2,
+        ediff=1E-4,
+        ediffg=-0.05,
+        npar=8,
+        lplane=True,
+        lscalu=False,
+        nsim=32,
+        lreal="Auto",
+        kpts=(1,1,1),
+        gamma=True,
     )
 
 
@@ -89,5 +110,8 @@ def dft_refine_calc(calculator: Calculator,
         Calculator object.
     """
 
-    calculator.set(kpts=(2, 2, 1))
+    calculator.set(
+        command='mv CONTCAR POSCAR && rm WAVECAR && mpirun vasp_std >> out || true',
+        kpts=(2, 2, 1), gamma=False
+    )
     return calculator
