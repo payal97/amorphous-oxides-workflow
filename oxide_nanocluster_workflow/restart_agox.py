@@ -1,3 +1,4 @@
+import os
 from typing import Callable
 
 import numpy as np
@@ -22,7 +23,7 @@ from ase.atoms import Atoms
 from ase.calculators.calculator import Calculator
 
 
-def run_agox(nanocluster_stoichiometry: str,
+def restart_agox(nanocluster_stoichiometry: str,
              num_iterations: int,
              target_calc: Calculator,
              check_callback : Callable[[CandidateBaseClass], None],
@@ -49,8 +50,27 @@ def run_agox(nanocluster_stoichiometry: str,
     """
 
     # --- AGOX loop setup ---
+    # flag to determine if model needs to be trained on previous data before first iteration
+    restarting = False
+
     # database
-    database = Database(filename=f'db_{index:03d}.db', order=5)
+    try:
+        os.rename(f'db_{index:03d}.db', f'db_previous_{index:03d}.db')
+
+        prev_database = Database(filename=f'db_previous_{index:03d}.db')
+        prev_database.restore_to_memory()
+
+        database = Database(filename=f'db_{index:03d}.db', order=5)
+
+        for cand in prev_database.get_all_candidates():
+            database.store_candidate(cand)
+        restarting = True
+        print('RESTART: GOFEE run restarted using previous database.')
+
+    except Exception as err:
+        print("Error restarting with previous database:", err)
+        database = Database(filename=f'db_{index:03d}.db', order=5)
+        print('Previous database not used.')
 
     # environment
     top_layer_indices = [atom.index for atom in template if atom.tag == 1]
@@ -81,6 +101,9 @@ def run_agox(nanocluster_stoichiometry: str,
                 database=database,
                 prior=Repulsive(),
                 order=0)
+    if restarting:
+        model.train(prev_database.get_all_candidates())
+        print("RESTART: GPR model retrained on candidates from previous database.")
 
     # sampler
     sampler = KMeansSampler(descriptor=descriptor,
@@ -93,7 +116,7 @@ def run_agox(nanocluster_stoichiometry: str,
     rattle_generator = RattleGenerator(**environment.get_confinement())
     generators = [random_generator, rattle_generator]
 
-    num_candidates = {0: [40, 0], 5: [40, 160]}
+    num_candidates = {0: [40, 0], 2: [0, 160]}
 
     collector = ParallelCollector(generators=generators,
                                   sampler=sampler,
@@ -109,7 +132,7 @@ def run_agox(nanocluster_stoichiometry: str,
     # relaxer
     relaxer = ParallelRelaxPostprocess(model=acquisitor.get_acquisition_calculator(),
                                        constraints=environment.get_constraints(),
-                                       start_relax=5,
+                                       start_relax=2,
                                        optimizer_run_kwargs={'steps': 100, 'fmax': 0.05},
                                        order=2)
 
