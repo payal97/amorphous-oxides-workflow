@@ -27,6 +27,16 @@ class SurfaceSettings(BaseModel):
     next periodic copy (in Å)."""
 
 
+class BulkSettings(BaseModel):
+    a: float
+    b: float
+    c: float
+    alpha: float
+    beta: float
+    gamma: float
+    """Lattice parameters."""
+
+
 class AGOXSettings(BaseModel):
     num_iterations: int
     """Number of AGOX iterations to run."""
@@ -46,6 +56,23 @@ class SingleStoichiometry(BaseModel):
     """Stoichiometry of nanocluster to search for."""
 
     surface: SurfaceSettings
+    agox: AGOXSettings
+    energy_filter: EnergyFilterSettings
+
+    def model_post_init(self, _):
+        """Perform additional initialization.
+        """
+        self.run_dir.mkdir(parents=True, exist_ok=True)
+
+
+class SingleBulkStoichiometry(BaseModel):
+    run_dir: Path
+    """Working directory for this stoichiometry."""
+
+    symbols: str
+    """Stoichiometry to search for."""
+
+    bulk: BulkSettings
     agox: AGOXSettings
     energy_filter: EnergyFilterSettings
 
