@@ -1,0 +1,22 @@
+# Working directory for this stoichiometry.
+run_dir: Cs4Ir24O42
+
+# Stoichiometry to search for.
+symbols: Cs4Ir24O42
+
+bulk:
+  # Lattice parameters
+  a: 10.1259517670
+  b: 10.1259517670
+  c:  9.5356960297
+  alpha: 90
+  beta:  90
+  gamma: 90
+
+agox:
+  # Number of AGOX iterations to run.
+  num_iterations: 200
+
+energy_filter:
+  # Energy filtering threshold relative to the global minimum energy (in eV).
+  threshold: 1.0
