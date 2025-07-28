@@ -1,6 +1,6 @@
 from ase.io import write
-from oxide_nanocluster_workflow.config import (SingleStoichiometry, parse_args,
-                                               parse_config)
+from oxide_nanocluster_workflow.config import (SingleBulkStoichiometry,
+                                               parse_args, parse_config)
 from oxide_nanocluster_workflow.filters import energy_filter
 from oxide_nanocluster_workflow.utils import load_from_databases
 
@@ -15,7 +15,7 @@ def main():
     """
 
     (config_path, _) = parse_args()
-    config = parse_config(config_path, SingleStoichiometry)
+    config = parse_config(config_path, SingleBulkStoichiometry)
 
     db_paths = sorted((config.run_dir / 'agox_run').glob('db_*.db'))
     structures = load_from_databases(db_paths)

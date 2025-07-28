@@ -1,6 +1,9 @@
 from ase.io import read, write
-from oxide_nanocluster_workflow.config import (SingleStoichiometry, parse_args,
-                                               parse_config)
+from ase.atoms import Atoms
+from ase.build import surface
+from ase.cell import Cell
+from oxide_nanocluster_workflow.config import (SingleBulkStoichiometry,
+                                               parse_args, parse_config)
 from oxide_nanocluster_workflow.filters import graph_filter, joined_filter
 from oxide_nanocluster_workflow.surface import create_surface
 
@@ -17,24 +20,28 @@ def main():
     """
 
     (config_path, _) = parse_args()
-    config = parse_config(config_path, SingleStoichiometry)
+    config = parse_config(config_path, SingleBulkStoichiometry)
 
-    template = create_surface(element=config.surface.element,
-                              size=config.surface.high_level_size,
-                              a=config.surface.a,
-                              vacuum=config.surface.vacuum)
+    bulk = Atoms("",
+                 cell=Cell.fromcellpar([config.bulk.a,
+                                        config.bulk.b,
+                                        config.bulk.c,
+                                        config.bulk.alpha,
+                                        config.bulk.beta,
+                                        config.bulk.gamma]),
+                 pbc=True)
+    template = surface(bulk, (0, 0, 1), 1)
+    template.center(vacuum=14, axis=2)
+    template.pbc = True
 
-    structure_paths = sorted((config.run_dir / 'dft_relax').glob('struc_*.traj'))
+    structure_paths = sorted((config.run_dir).glob('dft_relax_*/struc_*.traj'))
     structures = [read(path) for path in structure_paths]
     print(f'Loaded {len(structures)} structures.')
 
     structures = graph_filter(structures, template)
     print(f'Filtered to {len(structures)} structural groups.')
 
-    structures = joined_filter(structures, template)
-    print(f'Filtered to {len(structures)} joined structures.')
-
-    write('final_structures.traj', structures)
+    write(config.run_dir / 'final_structures.traj', structures)
 
 
 if __name__ == '__main__':

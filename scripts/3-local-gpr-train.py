@@ -35,7 +35,10 @@ def main():
 
     structures: list[Atoms] = []
     for path in config.input_run_dirs:
-        structures += read(path / 'graph_filtered_1.traj', index=':')
+        try:
+            structures += read(path / 'graph_filtered_1.traj', index=':')
+        except Exception as err:
+            print(err)
 
     print(f'Loaded {len(structures)} structures.')
 

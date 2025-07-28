@@ -1,10 +1,12 @@
+import os
+
 from ase.constraints import FixAtoms
 from ase.io import read, write
 from ase.optimize.bfgs import BFGS
 from oxide_nanocluster_workflow.calculators import (dft_refine_calc,
                                                     dft_relax_calc)
-from oxide_nanocluster_workflow.config import (SingleStoichiometry, parse_args,
-                                               parse_config)
+from oxide_nanocluster_workflow.config import (SingleBulkStoichiometry,
+                                               parse_args, parse_config)
 from oxide_nanocluster_workflow.surface import create_surface, transfer_surface
 
 
@@ -20,38 +22,42 @@ def main():
     """
 
     (config_path, index) = parse_args()
-    config = parse_config(config_path, SingleStoichiometry)
+    config = parse_config(config_path, SingleBulkStoichiometry)
 
-    relax_run_dir = config.run_dir / 'dft_relax'
+    relax_run_dir = config.run_dir / f'dft_relax_{index:03d}'
     relax_run_dir.mkdir(parents=True, exist_ok=True)
 
-    structure = read(config.run_dir / 'graph_filtered_2.traj', index=index)
+    # trajectory indices start from 0, while job array indices start from 1
+    index = index - 1
+    structure = None
+    try:
+        structure = read(config.run_dir / 'graph_filtered_2.traj', index=index)
+    except Exception as err:
+        print(err)
+    # if not found in graph_filtered_2, find in graph_filtered_1
+    if structure is None:
+        try:
+            structure = read(config.run_dir / 'graph_filtered_1.traj', index=index)
+        except Exception as err:
+            print(err)
 
-    # transfer structure to high-level surface
-    templates = [create_surface(element=config.surface.element,
-                                size=size,
-                                a=config.surface.a,
-                                vacuum=config.surface.vacuum)
-                 for size in (config.surface.low_level_size, config.surface.high_level_size)]
+    if structure is not None:
+        os.chdir(relax_run_dir)
 
-    structure = transfer_surface(structure, templates[0], templates[1])
+        # initial relaxation
+        calc = dft_relax_calc(structure)
+        structure.calc = calc
 
-    structure.set_constraint(FixAtoms(mask=structure.get_tags() > 1))
+        dyn = BFGS(structure, trajectory=str(f'traj_{index:03d}.traj'))
+        dyn.run(fmax=0.05)
 
-    # initial relaxation
-    calc = dft_relax_calc(structure)
-    structure.calc = calc
+        # refinement
+        calc = dft_refine_calc(calc, structure)
+        structure.calc = calc
 
-    dyn = BFGS(structure, trajectory=str(relax_run_dir / f'traj_{index:03d}.traj'))
-    dyn.run(fmax=0.05)
+        structure.get_potential_energy()
 
-    # refinement
-    calc = dft_refine_calc(calc, structure)
-    structure.calc = calc
-
-    structure.get_potential_energy()
-
-    write(relax_run_dir / f'struc_{index:03d}.traj', structure)
+        write(f'struc_{index:03d}.traj', structure)
 
 
 if __name__ == '__main__':

@@ -1,6 +1,9 @@
 from ase.io import read, write
-from oxide_nanocluster_workflow.config import (SingleStoichiometry, parse_args,
-                                               parse_config)
+from ase.atoms import Atoms
+from ase.build import surface
+from ase.cell import Cell
+from oxide_nanocluster_workflow.config import (SingleBulkStoichiometry,
+                                               parse_args, parse_config)
 from oxide_nanocluster_workflow.filters import graph_filter
 from oxide_nanocluster_workflow.surface import create_surface
 
@@ -16,12 +19,19 @@ def main():
     """
 
     (config_path, _) = parse_args()
-    config = parse_config(config_path, SingleStoichiometry)
+    config = parse_config(config_path, SingleBulkStoichiometry)
 
-    template = create_surface(element=config.surface.element,
-                              size=config.surface.low_level_size,
-                              a=config.surface.a,
-                              vacuum=config.surface.vacuum)
+    bulk = Atoms("",
+                 cell=Cell.fromcellpar([config.bulk.a,
+                                        config.bulk.b,
+                                        config.bulk.c,
+                                        config.bulk.alpha,
+                                        config.bulk.beta,
+                                        config.bulk.gamma]),
+                 pbc=True)
+    template = surface(bulk, (0, 0, 1), 1)
+    template.center(vacuum=14, axis=2)
+    template.pbc = True
 
     structures = read(config.run_dir / 'local_gpr_relaxed.traj', index=':')
     print(f'Loaded {len(structures)} structures.')
