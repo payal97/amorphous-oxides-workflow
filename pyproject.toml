@@ -9,7 +9,7 @@ readme = "README.md"
 requires-python = ">= 3.9"
 license = {text = "GPLv3"}
 dependencies = [
-    "agox@git+https://gitlab.com/agox/agox.git@lcb-penalty-fix",
+    "agox",
     "ase",
     "numpy",
     "pydantic",

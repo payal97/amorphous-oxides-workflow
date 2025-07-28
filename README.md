@@ -24,10 +24,6 @@ $ cd oxide-nanocluster-workflow
 $ pip install --editable .
 ```
 
-⚠️ _This package currently depends on a development version of AGOX. Hence,
-AGOX will be installed from Git instead of from PyPI when running the above
-command._
-
 ## Usage
 
 The standalone scripts can be found in the [`scripts`](scripts/) subdirectory.
