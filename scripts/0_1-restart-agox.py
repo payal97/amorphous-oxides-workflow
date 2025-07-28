@@ -7,7 +7,7 @@ from oxide_nanocluster_workflow.calculators import agox_target_calc
 from oxide_nanocluster_workflow.callback import vasp_callback
 from oxide_nanocluster_workflow.config import (SingleBulkStoichiometry,
                                                parse_args, parse_config)
-from oxide_nanocluster_workflow.run_agox import run_agox
+from oxide_nanocluster_workflow.restart_agox import restart_agox
 
 
 def main():
@@ -42,7 +42,7 @@ def main():
     template.center(vacuum=14, axis=2)
     template.pbc = True
 
-    run_agox(symbols=config.symbols,
+    restart_agox(symbols=config.symbols,
              num_iterations=config.agox.num_iterations,
              target_calc=agox_target_calc(template, index),
              check_callback=vasp_callback,

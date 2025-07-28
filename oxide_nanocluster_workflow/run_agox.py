@@ -22,28 +22,25 @@ from ase.atoms import Atoms
 from ase.calculators.calculator import Calculator
 
 
-def run_agox(nanocluster_stoichiometry: str,
+def run_agox(symbols: str,
              num_iterations: int,
              target_calc: Calculator,
              check_callback : Callable[[CandidateBaseClass], None],
              template: Atoms,
-             template_size: tuple[int, int, int],
              index: int):
     """Run global optimization using AGOX, as described in the "Global
     optimization" section of the manuscript.
 
     Parameters
     ----------
-    nanocluster_stoichiometry : str
-        Stoichiometry of nanocluster to search for.
+    symbols : str
+        Stoichiometry to search for.
     num_iterations : int
         Number of AGOX iterations to run.
     target_calc : Calculator
         Target potential configuration.
     template : Atoms
-        Metal surface to place nanocluster atoms on.
-    template_size : tuple[int, int, int]
-        Number of atoms (a, b, c) in the metal surface.
+        Cell to place atoms in.
     index : int
         Index of parallel run.
     """
@@ -53,16 +50,12 @@ def run_agox(nanocluster_stoichiometry: str,
     database = Database(filename=f'db_{index:03d}.db', order=5)
 
     # environment
-    top_layer_indices = [atom.index for atom in template if atom.tag == 1]
-
-    # confinement cell matches the template cell in x & y but is smaller in z.
     confinement_cell = template.cell.copy()
-    confinement_cell[2, 2] = 8.0
-    z0 = template.positions[:, 2].max()
-    confinement_corner = np.array([0, 0, z0])  # Confinement corner is at cell origin
+    confinement_cell[2, 2] = 18.0
+    confinement_corner = np.array([0, 0, 0])
 
     environment = Environment(template=template,
-                              symbols=nanocluster_stoichiometry,
+                              symbols=symbols,
                               confinement_cell=confinement_cell,
                               confinement_corner=confinement_corner,
                               box_constraint_pbc=[True, True, False])
@@ -123,11 +116,6 @@ def run_agox(nanocluster_stoichiometry: str,
                                            store_trajectory=True,
                                            order=4)
 
-    # postprocessors
-    #centerer = SurfaceCenteringPostprocess(template_size,
-    #                                       order=4)
-
     # run
-    agox = AGOX(collector, relaxer, # centerer,
-                acquisitor, evaluator, database, seed=index)
+    agox = AGOX(collector, relaxer, acquisitor, evaluator, database, seed=index)
     agox.run(N_iterations=num_iterations)
