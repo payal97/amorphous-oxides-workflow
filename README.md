@@ -1,3 +1,6 @@
+This repo was forked and modified from: https://gitlab.com/lkkmpn/oxide-nanocluster-workflow
+
+
 # Oxide nanocluster workflow
 
 This repository contains a Python package, `oxide_nanocluster_workflow`,
